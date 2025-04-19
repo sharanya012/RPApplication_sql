@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>All Research Papers</title>
+    <link rel="stylesheet" href="/css/styles.css"> <!-- Optional CSS -->
+</head>
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+
+    <section>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Collaborators</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="paper : ${papers}">
+                    <td th:text="${paper.title}">Paper Title</td>
+                    <td th:text="${paper.user.name}">Author Name</td>
+                    <td>
+                        <ul>
+                            <li th:each="collab : ${paper.collaborators}"
+                                th:text="${collab.user.name + ' (' + collab.role + ')'}">
+                                Collaborator Name (Role)
+                            </li>
+                        </ul>
+                    </td>
+                    <td th:text="${#dates.format(paper.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2024</td>
+                    <td th:text="${#dates.format(paper.updatedAt, 'dd MMM yyyy HH:mm')}">02 Jan 2024</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</body>
+</html>

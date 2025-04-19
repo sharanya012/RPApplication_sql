@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/styles.css">
+    <title>Signup | RPApplication</title>
+</head>
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="form-container">
+        <h2>Sign Up</h2>
+        
+        <!-- Displaying messages dynamically -->
+        <div th:if="${message}" class="alert">
+            <p th:text="${message}"></p>
+        </div>
+
+        <form th:action="@{/signup}" method="post">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="email" name="email" placeholder="Email" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</body>
+</html>

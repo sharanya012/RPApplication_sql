@@ -1,0 +1,22 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/styles.css">
+    <title>Home | RPApplication</title>
+</head>
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="container index-page">
+        <div class="image-side">
+            <img src="/images/banner1.jpg" alt="Research Illustration">
+        </div>
+        <div class="action-side">
+            <h1>Welcome to RPApplication</h1>
+            <a class="btn" href="/papers/create">Create New Paper</a>
+            <a class="btn" href="/papers">View All Papers</a>
+        </div>
+    </div>
+</body>
+</html>

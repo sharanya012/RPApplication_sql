@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/styles.css">
+    <title>Login | RPApplication</title>
+</head>
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="form-container">
+        <h2>Login</h2>
+
+        <!-- Displaying messages dynamically -->
+        <div th:if="${message}" class="alert">
+            <p th:text="${message}"></p>
+        </div>
+
+        <!-- Show error message -->
+        <p style="color:red;" th:if="${error}" th:text="${error}"></p>
+
+        <!-- Using session?.getAttribute checks if session exists first -->
+        <div th:if="${session == null || session.userId == null}">
+            <form th:action="@{/userlogin}" method="post">
+                <input type="text" name="username" placeholder="Username" required><br>
+                <input type="password" name="password" placeholder="Password" required><br>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        
+        <!-- If user IS logged in, show logout button -->
+        <div th:if="${session != null && session.userId != null}">
+            <p>You are logged in as: <strong th:text="${session.userId}"></strong></p>
+            <form th:action="@{/userlogout}" method="get">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

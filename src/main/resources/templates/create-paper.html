@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Create Research Paper</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+
+<div th:replace="fragments/header :: header"></div>
+
+<form th:action="@{/papers/create}" method="post">
+    <!-- Title -->
+    <label for="title">Paper Title:</label><br>
+    <input type="text" id="title" name="title" required><br><br>
+
+    <!-- Template Selection -->
+    <label for="templateId">Choose Template:</label><br>
+    <select id="templateId" name="templateId" required>
+        <option value="">-- Select Template --</option>
+        <option th:each="template : ${templates}"
+                th:value="${template.id}"
+                th:text="${template.name}"></option>
+    </select><br><br>
+
+    <!-- Collaborators Section -->
+    <label>Collaborators (Email + Role):</label><br>
+    <div id="collaborators-container">
+        <div class="collaborator-entry">
+            <input type="email" name="collaborators[]" placeholder="Email">
+            <select name="roles[]">
+                <option value="EDITOR">Editor</option>
+                <option value="VIEWER">Viewer</option>
+            </select>
+        </div>
+    </div>
+    <button type="button" onclick="addCollaborator()">Add Collaborator</button><br><br>
+
+    <button type="submit">Create Paper</button>
+</form>
+
+<script>
+    function addCollaborator() {
+        const container = document.getElementById('collaborators-container');
+        const entry = document.createElement('div');
+        entry.classList.add('collaborator-entry');
+        entry.innerHTML = `
+            <input type="email" name="collaborators[]" placeholder="Email">
+            <select name="roles[]">
+                <option value="EDITOR">Editor</option>
+                <option value="VIEWER">Viewer</option>
+            </select>
+        `;
+        container.appendChild(entry);
+    }
+</script>
+
+</body>
+</html>
