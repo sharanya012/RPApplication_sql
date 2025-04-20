@@ -1,11 +1,13 @@
+// ResearchPaperRepository.java
 package com.researchpaper.RPApplication.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import com.researchpaper.RPApplication.model.ResearchPaper;
+import com.researchpaper.RPApplication.model.User;
 
-@Repository
 public interface ResearchPaperRepository extends JpaRepository<ResearchPaper, Long> {
-    // You can add custom queries here if needed
+    List<ResearchPaper> findByUser(User user);
 }

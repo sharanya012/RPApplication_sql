@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Paper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .form-container {
+            flex: 1;
+        }
+        .preview-container {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .author, .section {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        h2, h3 {
+            color: #333;
+        }
+        .preview-section {
+            margin-bottom: 20px;
+        }
+        .preview-section h3 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Paper Submission System</h1>
+    
+    <div class="container">
+        <!-- Left side: Form inputs -->
+        <div class="form-container">
+            <div id="paper-details">
+                <h2>Submit Paper</h2>
+
+                <!-- Title Section -->
+                <div>
+                    <label for="title">Title: </label>
+                    <input type="text" id="title" placeholder="Enter title" required>
+                </div>
+
+                <!-- Author Section -->
+                <div id="authors">
+                    <h3>Authors</h3>
+                    <div class="author">
+                        <input type="text" class="author-name" placeholder="Author Name" required>
+                        <input type="text" class="author-department" placeholder="Department" required>
+                        <input type="text" class="author-organization" placeholder="Organization" required>
+                        <input type="text" class="author-city" placeholder="City/Country" required>
+                        <input type="text" class="author-contact" placeholder="Contact" required>
+                    </div>
+                    <button type="button" id="add-author">Add Author</button>
+                </div>
+
+                <!-- Abstract Section -->
+                <div>
+                    <label for="abstract">Abstract: </label>
+                    <textarea id="abstract" rows="4" placeholder="Enter abstract" required></textarea>
+                </div>
+
+                <!-- Keywords Section -->
+                <div>
+                    <label for="keywords">Keywords: </label>
+                    <input type="text" id="keywords" placeholder="Enter keywords, separated by commas">
+                </div>
+                
+                <!-- Sections -->
+                <div id="sections">
+                    <h3>Sections</h3>
+                    <div id="section-list">
+                        <div class="section">
+                            <label for="section-title">Section Title:</label>
+                            <input type="text" class="section-title" placeholder="Enter section title">
+                            <label for="section-content">Section Content:</label>
+                            <textarea class="section-content" rows="4" placeholder="Enter section content"></textarea>
+                        </div>
+                    </div>
+                    <button id="add-section">Add Section</button>
+                </div>
+
+                <!-- Save Button -->
+                <div>
+                    <button type="button" id="save-paper">Save Paper</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right side: Live preview -->
+        <div class="preview-container">
+            <h2>Paper Preview</h2>
+            
+            <div class="preview-section">
+                <h3>Title</h3>
+                <div id="preview-title">-</div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>Authors</h3>
+                <div id="preview-authors">-</div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>Abstract</h3>
+                <div id="preview-abstract">-</div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>Keywords</h3>
+                <div id="preview-keywords">-</div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>Paper Content</h3>
+                <div id="preview-sections">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to update the preview
+        function updatePreview() {
+            // Update title preview
+            const title = document.getElementById('title').value.trim();
+            document.getElementById('preview-title').textContent = title || '-';
+            
+            // Update abstract preview
+            const abstract = document.getElementById('abstract').value.trim();
+            document.getElementById('preview-abstract').textContent = abstract || '-';
+            
+            // Update keywords preview
+            const keywords = document.getElementById('keywords').value.trim();
+            document.getElementById('preview-keywords').textContent = keywords || '-';
+            
+            // Update authors preview
+            const authorElements = document.querySelectorAll('.author');
+            let authorsHtml = '';
+            
+            authorElements.forEach((author, index) => {
+                const name = author.querySelector('.author-name').value.trim();
+                const department = author.querySelector('.author-department').value.trim();
+                const organization = author.querySelector('.author-organization').value.trim();
+                const city = author.querySelector('.author-city').value.trim();
+                const contact = author.querySelector('.author-contact').value.trim();
+                
+                if (name || department || organization || city || contact) {
+                    authorsHtml += `<p><strong>Author ${index + 1}:</strong><br>`;
+                    if (name) authorsHtml += `Name: ${name}<br>`;
+                    if (department) authorsHtml += `Department: ${department}<br>`;
+                    if (organization) authorsHtml += `Organization: ${organization}<br>`;
+                    if (city) authorsHtml += `City/Country: ${city}<br>`;
+                    if (contact) authorsHtml += `Contact: ${contact}`;
+                    authorsHtml += '</p>';
+                }
+            });
+            
+            document.getElementById('preview-authors').innerHTML = authorsHtml || '-';
+            
+            // Update sections preview
+            const sectionTitles = document.querySelectorAll('.section-title');
+            const sectionContents = document.querySelectorAll('.section-content');
+            let sectionsHtml = '';
+            
+            sectionTitles.forEach((titleEl, index) => {
+                const sectionTitle = titleEl.value.trim();
+                const content = sectionContents[index].value.trim();
+                
+                if (sectionTitle || content) {
+                    sectionsHtml += `<div class="preview-section-item">`;
+                    if (sectionTitle) {
+                        sectionsHtml += `<h4>${sectionTitle}</h4>`;
+                    }
+                    if (content) {
+                        sectionsHtml += `<p>${content}</p>`;
+                    }
+                    sectionsHtml += `</div>`;
+                }
+            });
+            
+            document.getElementById('preview-sections').innerHTML = sectionsHtml || '-';
+        }
+
+        // Add event listeners to all input fields
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize preview
+            updatePreview();
+            
+            // Add input event listeners
+            document.getElementById('title').addEventListener('input', updatePreview);
+            document.getElementById('abstract').addEventListener('input', updatePreview);
+            document.getElementById('keywords').addEventListener('input', updatePreview);
+            
+            // Add listeners for dynamically added elements
+            document.getElementById('paper-details').addEventListener('input', function(e) {
+                if (e.target.classList.contains('author-name') || 
+                    e.target.classList.contains('author-department') || 
+                    e.target.classList.contains('author-organization') || 
+                    e.target.classList.contains('author-city') || 
+                    e.target.classList.contains('author-contact') || 
+                    e.target.classList.contains('section-title') || 
+                    e.target.classList.contains('section-content')) {
+                    updatePreview();
+                }
+            });
+        });
+
+        // Add section functionality
+        document.getElementById('add-section').addEventListener('click', function() {
+            const sectionList = document.getElementById('section-list');
+            const section = document.createElement('div');
+            section.classList.add('section');
+            section.innerHTML = `
+                <label for="section-title">Section Title:</label>
+                <input type="text" class="section-title" placeholder="Enter section title">
+                <label for="section-content">Section Content:</label>
+                <textarea class="section-content" rows="4" placeholder="Enter section content"></textarea>
+            `;
+            sectionList.appendChild(section);
+            updatePreview(); // Update preview after adding a new section
+        });
+
+        // Save functionality
+        document.getElementById('save-paper').addEventListener('click', function() {
+            const title = document.getElementById('title').value.trim();
+            const abstract = document.getElementById('abstract').value.trim();
+            const keywords = document.getElementById('keywords').value.trim().split(',').map(k => k.trim()).filter(k => k);
+
+            // Validate title and abstract
+            if (!title || !abstract) {
+                alert('Please provide both a title and abstract.');
+                return;
+            }
+
+            // Collect author details
+            const authors = [];
+            const authorElements = document.querySelectorAll('.author');
+            authorElements.forEach((author) => {
+                const name = author.querySelector('.author-name').value.trim();
+                const department = author.querySelector('.author-department').value.trim();
+                const organization = author.querySelector('.author-organization').value.trim();
+                const city = author.querySelector('.author-city').value.trim();
+                const contact = author.querySelector('.author-contact').value.trim();
+                
+                if (name && department && organization && city && contact) {
+                    authors.push({ name, department, organization, city, contact });
+                }
+            });
+
+            // If no authors are added, alert user
+            if (authors.length === 0) {
+                alert('Please add at least one author.');
+                return;
+            }
+
+            // Collect sections
+            const sections = [];
+            const sectionTitles = document.querySelectorAll('.section-title');
+            const sectionContents = document.querySelectorAll('.section-content');
+            sectionTitles.forEach((titleEl, index) => {
+                const section = {
+                    sectionTitle: titleEl.value.trim(),
+                    content: sectionContents[index].value.trim(),
+                    position: index + 1
+                };
+                if (section.sectionTitle && section.content) {
+                    sections.push(section);
+                }
+            });
+
+            // Prepare the paper data
+            const paperDTO = {
+                title,
+                abstractText: abstract,
+                keywords,
+                authors,
+                sections
+            };
+
+            // Send data to backend
+            fetch('/save-paper', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paperDTO)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                console.log(data);
+            })
+            .catch(error => {
+                alert('Error submitting paper');
+                console.error(error);
+            });
+        });
+
+        // Add more author fields
+        document.getElementById('add-author').addEventListener('click', function() {
+            const authorSection = document.getElementById('authors');
+            const newAuthorDiv = document.createElement('div');
+            newAuthorDiv.classList.add('author');
+            newAuthorDiv.innerHTML = `
+                <input type="text" class="author-name" placeholder="Author Name" required>
+                <input type="text" class="author-department" placeholder="Department" required>
+                <input type="text" class="author-organization" placeholder="Organization" required>
+                <input type="text" class="author-city" placeholder="City/Country" required>
+                <input type="text" class="author-contact" placeholder="Contact" required>
+            `;
+            authorSection.insertBefore(newAuthorDiv, document.getElementById('add-author'));
+            updatePreview(); // Update preview after adding a new author
+        });
+    </script>
+</body>
+</html>

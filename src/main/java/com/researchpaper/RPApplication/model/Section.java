@@ -33,6 +33,8 @@ public class Section {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
+    
+
     // Getters and Setters
     public Long getId() {
         return id;

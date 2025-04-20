@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,378 +7,7 @@
     <title>Research Paper Submission</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
     <style>
-        /* Global Styles */
-        :root {
-            --primary-color: #3a7bd5;
-            --primary-light: #f0f5ff;
-            --secondary-color: #00d2ff;
-            --text-dark: #2d3748;
-            --text-light: #4a5568;
-            --background: #f8fafc;
-            --border-color: #e2e8f0;
-            --success: #48bb78;
-            --danger: #f56565;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background);
-            color: var(--text-dark);
-            line-height: 1.6;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 900px;
-            margin: 30px auto;
-            padding: 30px;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 30px;
-            color: var(--text-dark);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 10px;
-        }
-
-        /* Paper Section Styles */
-        .paper-section {
-            margin-bottom: 20px;
-            border-radius: 8px;
-            background-color: white;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-        }
-
-        .paper-section:hover {
-            box-shadow: var(--shadow-md);
-        }
-
-        .section-header {
-            padding: 12px 20px;
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .section-header .status-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255, 255, 255, 0.2);
-            transition: var(--transition);
-        }
-
-        .section-content {
-            padding: 0;
-            transition: var(--transition);
-        }
-
-        .section-editor {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
-        }
-
-        .section-editor.active {
-            max-height: 1000px;
-            opacity: 1;
-            padding: 20px;
-        }
-
-        .section-editor:not(.active) {
-            padding-top: 0;
-            padding-bottom: 0;
-        }
-
-        .section-display {
-            padding: 20px;
-            background-color: white;
-            display: none;
-        }
-
-        .section-display.visible {
-            display: block;
-        }
-
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            color: var(--text-light);
-            margin-bottom: 5px;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 10px 12px;
-            font-size: 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            transition: var(--transition);
-            background-color: white;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.15);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        /* Buttons */
-        button {
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: var(--transition);
-            border: none;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #2d62b3;
-        }
-
-        .btn-success {
-            background-color: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background-color: #38a169;
-        }
-
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #e53e3e;
-        }
-
-        .btn-sm {
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-
-        /* Author Styles */
-        .author-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .author-card {
-            background-color: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            position: relative;
-            transition: var(--transition);
-        }
-
-        .author-card:hover {
-            box-shadow: var(--shadow-md);
-        }
-
-        .author-card h4 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-            font-size: 16px;
-        }
-
-        .author-card p {
-            margin: 5px 0;
-            font-size: 14px;
-            color: var(--text-light);
-        }
-
-        .author-card .remove-author {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        /* Submit Section */
-        .submit-section {
-            margin-top: 30px;
-            text-align: center;
-        }
-
-        .submit-btn {
-            padding: 12px 24px;
-            font-size: 16px;
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Section Content Preview */
-        .preview-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .preview-abstract {
-            font-style: italic;
-            text-align: justify;
-            padding: 15px;
-            background-color: var(--primary-light);
-            border-radius: 6px;
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .preview-section h3 {
-            color: var(--primary-color);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-number {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 24px;
-            margin-right: 10px;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-
-        .preview-section p {
-            text-align: justify;
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .container {
-                width: 95%;
-                padding: 20px;
-            }
-
-            .author-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Edit button styles */
-        .edit-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 4px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-            float: right;
-            margin-left: 8px;
-        }
-
-        .edit-btn:hover {
-            background-color: #2d62b3;
-        }
-
-        /* Section controls */
-        .section-controls {
-            display: flex;
-            justify-content: flex-end;
-            gap: 5px;
-            margin-top: 10px;
-        }
-
-        .move-btn {
-            background-color: var(--text-light);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .move-btn:hover {
-            background-color: var(--text-dark);
-            transform: scale(1.1);
-        }
-
-        .move-up::after {
-            content: "↑";
-            font-weight: bold;
-        }
-
-        .move-down::after {
-            content: "↓";
-            font-weight: bold;
-        }
-
-        /* Add section styles */
-        #add-section-container .section-header {
-            background: linear-gradient(to right, #6c5ce7, #a29bfe);
-        }
+        /* [Keep all your existing CSS styles] */
     </style>
 </head>
 
@@ -387,435 +15,121 @@
     <div class="container">
         <h1>Research Paper Submission</h1>
 
-        <!-- Title Section -->
-        <div class="paper-section" id="title-section">
-            <div class="section-header" data-section="title">
-                <span>Title</span>
-                <span class="status-icon">+</span>
-            </div>
-            <div class="section-content">
-                <div class="section-editor" id="title-editor">
-                    <div class="form-group">
-                        <input type="text" id="title-input" placeholder="Enter the title of your paper" required>
-                    </div>
-                    <button class="btn-success" id="save-title">Save</button>
+        <!-- Display mode (initially hidden) -->
+        <div id="paper-display-mode">
+            <!-- Title Section -->
+            <div class="paper-section">
+                <div class="section-header" style="background: linear-gradient(to right, var(--primary-color), var(--secondary-color));">
+                    <span>Paper Details</span>
                 </div>
-                <div class="section-display" id="title-display"></div>
+                <div class="section-content">
+                    <div class="section-display visible">
+                        <div class="preview-title" th:text="${paper.title}">Paper Title</div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Authors Section -->
-        <div class="paper-section" id="authors-section">
-            <div class="section-header" data-section="authors">
-                <span>Authors</span>
-                <span class="status-icon">+</span>
-            </div>
-            <div class="section-content">
-                <div class="section-editor" id="authors-editor">
-                    <form id="author-form">
-                        <div class="author-grid">
-                            <div class="form-group">
-                                <label for="author-name">Full Name</label>
-                                <input type="text" id="author-name" placeholder="1st Given Name Surname" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="author-department">Department</label>
-                                <input type="text" id="author-department" placeholder="Department Name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="author-organization">Organization</label>
-                                <input type="text" id="author-organization" placeholder="Name of Organization" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="author-location">Location</label>
-                                <input type="text" id="author-location" placeholder="City, Country" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="author-email">Email or ORCID</label>
-                                <input type="email" id="author-email" placeholder="Email Address or ORCID" required>
+            <!-- Authors Section -->
+            <div class="paper-section">
+                <div class="section-header" style="background: linear-gradient(to right, var(--primary-color), var(--secondary-color));">
+                    <span>Authors</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-display visible">
+                        <div id="author-list" class="author-grid">
+                            <div th:each="author : ${authors}" class="author-card">
+                                <h4 th:text="${author.fullName}">Author Name</h4>
+                                <p th:text="${author.department}">Department</p>
+                                <p th:text="${author.organization}">Organization</p>
+                                <p th:text="${author.cityCountry}">Location</p>
+                                <p th:text="${author.contact}">Contact</p>
                             </div>
                         </div>
-                        <button type="button" class="btn-success" id="add-author">Add Author</button>
-                    </form>
+                    </div>
                 </div>
-                <div class="section-display" id="authors-display">
-                    <div id="author-list" class="author-grid"></div>
+            </div>
+
+            <!-- Abstract Section -->
+            <div class="paper-section">
+                <div class="section-header" style="background: linear-gradient(to right, var(--primary-color), var(--secondary-color));">
+                    <span>Abstract</span>
                 </div>
+                <div class="section-content">
+                    <div class="section-display visible">
+                        <div class="preview-abstract" th:text="${paperAbstract.content}">Abstract content</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keywords Section -->
+            <div class="paper-section">
+                <div class="section-header" style="background: linear-gradient(to right, var(--primary-color), var(--secondary-color));">
+                    <span>Keywords</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-display visible">
+                        <div><strong>Keywords:</strong> <span th:each="keyword : ${keywords}" th:text="${keyword.keyword} + (${keywordStat.last} ? '' : ', ')">keyword</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sections -->
+            <div th:each="section : ${sections}" class="paper-section">
+                <div class="section-header" style="background: linear-gradient(to right, var(--primary-color), var(--secondary-color));">
+                    <span th:text="${section.sectionTitle}">Section Title</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-display visible">
+                        <div class="preview-section">
+                            <h3><span class="section-number" th:text="${section.position}">1</span><span th:text="${section.sectionTitle}">Section Title</span></h3>
+                            <p th:text="${section.content}">Section content</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Button -->
+            <div class="submit-section">
+                <button class="submit-btn" id="edit-paper">Edit Paper</button>
             </div>
         </div>
 
-        <!-- Abstract Section -->
-        <div class="paper-section" id="abstract-section">
-            <div class="section-header" data-section="abstract">
-                <span>Abstract</span>
-                <span class="status-icon">+</span>
-            </div>
-            <div class="section-content">
-                <div class="section-editor" id="abstract-editor">
-                    <div class="form-group">
-                        <textarea id="abstract-input" placeholder="Enter the abstract for your paper" required></textarea>
-                    </div>
-                    <button class="btn-success" id="save-abstract">Save</button>
-                </div>
-                <div class="section-display" id="abstract-display"></div>
-            </div>
-        </div>
-
-        <!-- Keywords Section -->
-        <div class="paper-section" id="keywords-section">
-            <div class="section-header" data-section="keywords">
-                <span>Keywords</span>
-                <span class="status-icon">+</span>
-            </div>
-            <div class="section-content">
-                <div class="section-editor" id="keywords-editor">
-                    <div class="form-group">
-                        <input type="text" id="keywords-input" placeholder="Enter keywords separated by commas" required>
-                    </div>
-                    <button class="btn-success" id="save-keywords">Save</button>
-                </div>
-                <div class="section-display" id="keywords-display"></div>
-            </div>
-        </div>
-
-        <!-- Add Custom Section -->
-        <div class="paper-section" id="add-section-container">
-            <div class="section-header" data-section="add-section">
-                <span>Add New Section</span>
-                <span class="status-icon">+</span>
-            </div>
-            <div class="section-content">
-                <div class="section-editor" id="add-section-editor">
-                    <div class="form-group">
-                        <label for="new-section-title">Section Title</label>
-                        <input type="text" id="new-section-title" placeholder="Enter Section Title (e.g., Introduction)" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-section-content">Section Content</label>
-                        <textarea id="new-section-content" placeholder="Enter content for this section..." required></textarea>
-                    </div>
-                    <button class="btn-primary" id="add-custom-section">Add Section</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Custom Sections will be added here -->
-        <div id="custom-sections-container"></div>
-
-        <!-- Submit Button -->
-        <div class="submit-section">
-            <button class="submit-btn" id="submit-paper">Submit Paper</button>
+        <!-- Edit mode (initially hidden) -->
+        <div id="paper-edit-mode" style="display: none;">
+            <!-- [Keep all your existing edit form HTML] -->
         </div>
     </div>
 
-    <script>
-        // Toggle section visibility and icon
-        const sectionHeaders = document.querySelectorAll('.section-header');
-        
-        sectionHeaders.forEach(header => {
-            header.addEventListener('click', () => {
-                const content = header.nextElementSibling;
-                const editor = content.querySelector('.section-editor');
-                const icon = header.querySelector('.status-icon');
-                
-                editor.classList.toggle('active');
-                
-                if (editor.classList.contains('active')) {
-                    icon.textContent = '-';
-                } else {
-                    icon.textContent = '+';
-                }
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're in edit mode (from URL parameter or session)
+            const urlParams = new URLSearchParams(window.location.search);
+            const editMode = urlParams.has('edit') || false;
+            
+            // Toggle between display and edit modes
+            const displayMode = document.getElementById('paper-display-mode');
+            const editModeDiv = document.getElementById('paper-edit-mode');
+            
+            if (editMode) {
+                displayMode.style.display = 'none';
+                editModeDiv.style.display = 'block';
+            } else {
+                displayMode.style.display = 'block';
+                editModeDiv.style.display = 'none';
+            }
+            
+            // Edit button functionality
+            document.getElementById('edit-paper').addEventListener('click', function() {
+                window.location.href = window.location.pathname + '?edit=true';
             });
-        });
-
-        // Title Section
-        document.getElementById('save-title').addEventListener('click', function() {
-            const titleInput = document.getElementById('title-input').value;
             
-            if (titleInput.trim() !== '') {
-                const titleDisplay = document.getElementById('title-display');
-                titleDisplay.innerHTML = `
-                    <div class="preview-title">${titleInput}</div>
-                    <button class="edit-btn" id="edit-title">Edit</button>
-                `;
-                titleDisplay.classList.add('visible');
-                
-                // Mark section as completed
-                document.querySelector('[data-section="title"]').style.backgroundColor = 'var(--success)';
-                
-                // Close editor
-                document.getElementById('title-editor').classList.remove('active');
-                document.querySelector('[data-section="title"] .status-icon').textContent = '+';
-                
-                // Add edit button functionality
-                document.getElementById('edit-title').addEventListener('click', function() {
-                    document.getElementById('title-editor').classList.add('active');
-                    document.querySelector('[data-section="title"] .status-icon').textContent = '-';
-                });
+            // If in edit mode, initialize all your existing edit functionality
+            if (editMode) {
+                // [Keep all your existing JavaScript for the edit form]
             }
         });
-
-        // Abstract Section
-        document.getElementById('save-abstract').addEventListener('click', function() {
-            const abstractInput = document.getElementById('abstract-input').value;
-            
-            if (abstractInput.trim() !== '') {
-                const abstractDisplay = document.getElementById('abstract-display');
-                abstractDisplay.innerHTML = `
-                    <div class="preview-abstract">${abstractInput}</div>
-                    <button class="edit-btn" id="edit-abstract">Edit</button>
-                `;
-                abstractDisplay.classList.add('visible');
-                
-                // Mark section as completed
-                document.querySelector('[data-section="abstract"]').style.backgroundColor = 'var(--success)';
-                
-                // Close editor
-                document.getElementById('abstract-editor').classList.remove('active');
-                document.querySelector('[data-section="abstract"] .status-icon').textContent = '+';
-                
-                // Add edit button functionality
-                document.getElementById('edit-abstract').addEventListener('click', function() {
-                    document.getElementById('abstract-editor').classList.add('active');
-                    document.querySelector('[data-section="abstract"] .status-icon').textContent = '-';
-                });
-            }
-        });
-
-        // Keywords Section
-        document.getElementById('save-keywords').addEventListener('click', function() {
-            const keywordsInput = document.getElementById('keywords-input').value;
-            
-            if (keywordsInput.trim() !== '') {
-                const keywordsDisplay = document.getElementById('keywords-display');
-                const keywords = keywordsInput.split(',').map(k => k.trim());
-                
-                keywordsDisplay.innerHTML = `
-                    <div><strong>Keywords:</strong> ${keywords.join(', ')}</div>
-                    <button class="edit-btn" id="edit-keywords">Edit</button>
-                `;
-                keywordsDisplay.classList.add('visible');
-                
-                // Mark section as completed
-                document.querySelector('[data-section="keywords"]').style.backgroundColor = 'var(--success)';
-                
-                // Close editor
-                document.getElementById('keywords-editor').classList.remove('active');
-                document.querySelector('[data-section="keywords"] .status-icon').textContent = '+';
-                
-                // Add edit button functionality
-                document.getElementById('edit-keywords').addEventListener('click', function() {
-                    document.getElementById('keywords-editor').classList.add('active');
-                    document.querySelector('[data-section="keywords"] .status-icon').textContent = '-';
-                });
-            }
-        });
-
-        // Authors Section
-        document.getElementById('add-author').addEventListener('click', function() {
-            const name = document.getElementById('author-name').value;
-            const department = document.getElementById('author-department').value;
-            const organization = document.getElementById('author-organization').value;
-            const location = document.getElementById('author-location').value;
-            const email = document.getElementById('author-email').value;
-            
-            if (name && department && organization && location && email) {
-                const authorList = document.getElementById('author-list');
-                
-                const authorCard = document.createElement('div');
-                authorCard.className = 'author-card';
-                authorCard.innerHTML = `
-                    <span class="remove-author" title="Remove author">×</span>
-                    <h4>${name}</h4>
-                    <p>${department}</p>
-                    <p>${organization}</p>
-                    <p>${location}</p>
-                    <p>${email}</p>
-                `;
-                
-                authorList.appendChild(authorCard);
-                document.getElementById('authors-display').classList.add('visible');
-                
-                // Clear form fields
-                document.getElementById('author-form').reset();
-                
-                // Add remove functionality
-                authorCard.querySelector('.remove-author').addEventListener('click', function() {
-                    authorList.removeChild(authorCard);
-                    
-                    // If no authors left, reset the section header color
-                    if (authorList.children.length === 0) {
-                        document.querySelector('[data-section="authors"]').style.background = 'linear-gradient(to right, var(--primary-color), var(--secondary-color))';
-                    }
-                });
-                
-                // Mark section as having content
-                if (authorList.children.length > 0) {
-                    document.querySelector('[data-section="authors"]').style.backgroundColor = 'var(--success)';
-                }
-                
-                // Close editor
-                document.getElementById('authors-editor').classList.remove('active');
-                document.querySelector('[data-section="authors"] .status-icon').textContent = '+';
-            }
-        });
-
-        // Function to update section numbers
-        function updateSectionNumbers() {
-            const customSections = document.querySelectorAll('#custom-sections-container .paper-section');
-            customSections.forEach((section, index) => {
-                const sectionNumber = section.querySelector('.section-number');
-                if (sectionNumber) {
-                    sectionNumber.textContent = index + 1;
-                }
-            });
-        }
-
-        // Function to move section up or down
-        function moveSection(sectionElement, direction) {
-            const container = document.getElementById('custom-sections-container');
-            const sections = Array.from(container.querySelectorAll('.paper-section'));
-            const currentIndex = sections.indexOf(sectionElement);
-            
-            if (direction === 'up' && currentIndex > 0) {
-                container.insertBefore(sectionElement, sections[currentIndex - 1]);
-                updateSectionNumbers();
-            } else if (direction === 'down' && currentIndex < sections.length - 1) {
-                container.insertBefore(sectionElement, sections[currentIndex + 1].nextSibling);
-                updateSectionNumbers();
-            }
-        }
-
-        // Add Custom Sections
-        document.getElementById('add-custom-section').addEventListener('click', function() {
-            const sectionTitle = document.getElementById('new-section-title').value;
-            const sectionContent = document.getElementById('new-section-content').value;
-            
-            if (sectionTitle.trim() !== '' && sectionContent.trim() !== '') {
-                const customSectionsContainer = document.getElementById('custom-sections-container');
-                
-                // Create a unique ID for the section
-                const sectionId = 'section-' + Date.now();
-                
-                // Create the new section
-                const newSection = document.createElement('div');
-                newSection.className = 'paper-section';
-                newSection.innerHTML = `
-                    <div class="section-header" data-section="${sectionId}" style="background-color: var(--success);">
-                        <span>${sectionTitle}</span>
-                        <span class="status-icon">+</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="section-editor" id="${sectionId}-editor">
-                            <div class="form-group">
-                                <textarea id="${sectionId}-input">${sectionContent}</textarea>
-                            </div>
-                            <button class="btn-success" id="save-${sectionId}">Save</button>
-                            <button class="btn-danger btn-sm" id="remove-${sectionId}">Remove Section</button>
-                        </div>
-                        <div class="section-display visible" id="${sectionId}-display">
-                            <div class="preview-section">
-                                <h3><span class="section-number">1</span>${sectionTitle}</h3>
-                                <p>${sectionContent}</p>
-                            </div>
-                            <div class="section-controls">
-                                <button class="move-btn move-up" id="up-${sectionId}" title="Move section up"></button>
-                                <button class="move-btn move-down" id="down-${sectionId}" title="Move section down"></button>
-                                <button class="edit-btn" id="edit-${sectionId}">Edit</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                customSectionsContainer.appendChild(newSection);
-                
-                // Add event listeners for the new section
-                const header = newSection.querySelector('.section-header');
-                const content = header.nextElementSibling;
-                const editor = content.querySelector('.section-editor');
-                const icon = header.querySelector('.status-icon');
-                
-                header.addEventListener('click', () => {
-                    editor.classList.toggle('active');
-                    icon.textContent = editor.classList.contains('active') ? '-' : '+';
-                });
-                
-                // Save button functionality
-                document.getElementById(`save-${sectionId}`).addEventListener('click', function() {
-                    const updatedContent = document.getElementById(`${sectionId}-input`).value;
-                    
-                    if (updatedContent.trim() !== '') {
-                        const display = document.getElementById(`${sectionId}-display`);
-                        display.querySelector('.preview-section p').textContent = updatedContent;
-                        
-                        // Close editor
-                        editor.classList.remove('active');
-                        icon.textContent = '+';
-                    }
-                });
-                
-                // Edit button functionality
-                document.getElementById(`edit-${sectionId}`).addEventListener('click', function() {
-                    editor.classList.add('active');
-                    icon.textContent = '-';
-                });
-                
-                // Remove button functionality
-                document.getElementById(`remove-${sectionId}`).addEventListener('click', function() {
-                    customSectionsContainer.removeChild(newSection);
-                    updateSectionNumbers();
-                });
-                
-                // Move up button functionality
-                document.getElementById(`up-${sectionId}`).addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    moveSection(newSection, 'up');
-                });
-                
-                // Move down button functionality
-                document.getElementById(`down-${sectionId}`).addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    moveSection(newSection, 'down');
-                });
-                
-                // Clear the form inputs
-                document.getElementById('new-section-title').value = '';
-                document.getElementById('new-section-content').value = '';
-                
-                // Update section numbers
-                updateSectionNumbers();
-                
-                // Close the add section editor
-                document.getElementById('add-section-editor').classList.remove('active');
-                document.querySelector('[data-section="add-section"] .status-icon').textContent = '+';
-            }
-        });
-
-        // Submit Paper functionality
-        document.getElementById('submit-paper').addEventListener('click', function() {
-            // Validation: check if title and authors exist
-            const title = document.querySelector('#title-display .preview-title');
-            const authors = document.querySelectorAll('#author-list .author-card');
-            const abstract = document.querySelector('#abstract-display .preview-abstract');
-            
-            if (!title) {
-                alert('Please add a title to your paper.');
-                return;
-            }
-            
-            if (authors.length === 0) {
-                alert('Please add at least one author to your paper.');
-                return;
-            }
-            
-            if (!abstract) {
-                alert('Please add an abstract to your paper.');
-                return;
-            }
-            
-            // Here you would typically collect all the data and submit it
-            alert('Your research paper has been successfully submitted!');
-        });
+        /*]]>*/
     </script>
 </body>
 </html>

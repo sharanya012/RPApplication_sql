@@ -6,21 +6,34 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
+import com.researchpaper.RPApplication.model.Author;
 import com.researchpaper.RPApplication.model.Collaborator;
+import com.researchpaper.RPApplication.model.Keyword;
+import com.researchpaper.RPApplication.model.PaperAbstract;
 import com.researchpaper.RPApplication.model.ResearchPaper;
+import com.researchpaper.RPApplication.model.Section;
 import com.researchpaper.RPApplication.model.User;
+import com.researchpaper.RPApplication.repository.AbstractRepository;
+import com.researchpaper.RPApplication.repository.AuthorRepository;
+import com.researchpaper.RPApplication.repository.KeywordRepository;
+import com.researchpaper.RPApplication.repository.ResearchPaperRepository;
+import com.researchpaper.RPApplication.repository.SectionRepository;
 import com.researchpaper.RPApplication.repository.TemplateRepository;
 import com.researchpaper.RPApplication.repository.UserRepository;
 import com.researchpaper.RPApplication.service.CollaboratorService;
 import com.researchpaper.RPApplication.service.ResearchPaperService;
 
+import jakarta.servlet.http.HttpSession;
+
 @Controller
+@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/papers")
 public class ResearchPaperController {
 
@@ -28,39 +41,72 @@ public class ResearchPaperController {
     private ResearchPaperService researchPaperService;
 
     @Autowired
+    private ResearchPaperRepository researchPaperRepository;
+
+    @Autowired
     private TemplateRepository templateRepository;
 
     @Autowired
-    private UserRepository userRepository;  // Inject the UserRepository to fetch users
+    private UserRepository userRepository;
 
     @Autowired
-    private CollaboratorService collaboratorService;  // Inject CollaboratorService to add collaborators
+    private CollaboratorService collaboratorService;
 
-    // Display the form to create a new paper
+    @Autowired
+    private AbstractRepository abstractRepository;
+
+    @Autowired
+    private AuthorRepository authorRepository;
+
+    @Autowired
+    private KeywordRepository keywordRepository;
+
+    @Autowired
+    private SectionRepository sectionRepository;
+
     @GetMapping("/create")
     public String showCreatePaperForm(Model model) {
         model.addAttribute("templates", templateRepository.findAll());
-        return "create-paper";  // This is the HTML template you have
+        return "create-paper";
     }
 
     @GetMapping("/view")
-    public String showViewPaper() {
-        return "write-paper";  // This is the HTML template you have
+    public String viewPaper(@SessionAttribute("paperId") Long paperId, Model model) {
+        try {
+            // Fetch the complete paper with all related data
+            ResearchPaper paper = researchPaperRepository.findById(paperId)
+                    .orElseThrow(() -> new RuntimeException("Paper not found"));
+            
+            // Get all related data
+            PaperAbstract paperAbstract = abstractRepository.findByPaperId(paperId);
+            List<Author> authors = authorRepository.findByPaperIdOrderByPositionAsc(paperId);
+            List<Keyword> keywords = keywordRepository.findByPaperId(paperId);
+            List<Section> sections = sectionRepository.findByPaperIdOrderByPositionAsc(paperId);
+            
+            // Add all data to the model
+            model.addAttribute("paper", paper);
+            model.addAttribute("paperAbstract", paperAbstract);
+            model.addAttribute("authors", authors);
+            model.addAttribute("keywords", keywords);
+            model.addAttribute("sections", sections);
+            
+            return "write-paper-new";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading paper: " + e.getMessage());
+            return "error";
+        }
     }
 
-    // Handle the form submission to create a new paper
     @PostMapping("/create")
     public String createResearchPaper(@RequestParam("title") String title,
-                                      @RequestParam("templateId") Long templateId,
-                                      @RequestParam("collaborators[]") List<String> collaboratorEmails,
-                                      @RequestParam("roles[]") List<String> roles,
-                                      @SessionAttribute("userId") String username, // Get username from session
-                                      Model model) {
+                                    @RequestParam("templateId") Long templateId,
+                                    @RequestParam("collaborators[]") List<String> collaboratorEmails,
+                                    @RequestParam("roles[]") List<String> roles,
+                                    @SessionAttribute("userId") String username,
+                                    HttpSession session,
+                                    Model model) {
 
-        // Add templates to model in case we need to return to form
         model.addAttribute("templates", templateRepository.findAll());
-
-        // Fetch the user using username from session
         Optional<User> userOptional = userRepository.findByUsername(username);
 
         if (!userOptional.isPresent()) {
@@ -68,38 +114,30 @@ public class ResearchPaperController {
             return "create-paper";
         }
 
-        User user = userOptional.get();  // Get the User object from the Optional
+        User user = userOptional.get();
 
         try {
-            // Create the research paper using the service
             ResearchPaper paper = researchPaperService.createResearchPaper(title, templateId, user);
+            session.setAttribute("paperId", paper.getId());
+            System.out.println("!!!!!!!!!!!The Paper ID is: " + paper.getId());
 
-            // Add collaborators to the paper
             for (int i = 0; i < collaboratorEmails.size(); i++) {
                 String collaboratorEmail = collaboratorEmails.get(i);
                 if (collaboratorEmail.isEmpty()) {
-                    System.out.println("⚠️ Skipping empty collaborator at index " + i);
                     continue;
                 }
                 Optional<User> collaboratorUserOpt = userRepository.findByEmail(collaboratorEmail);
 
                 if (collaboratorUserOpt.isPresent()) {
-                    Collaborator collaborator = collaboratorService.addCollaborator(paper, collaboratorUserOpt.get(), Collaborator.Role.valueOf(roles.get(i)));
-                    System.out.println("✅ Collaborator added: " + collaboratorEmail);
+                    collaboratorService.addCollaborator(paper, collaboratorUserOpt.get(), Collaborator.Role.valueOf(roles.get(i)));
                 } else {
-                    System.out.println("❌ Collaborator not found: " + collaboratorEmail);
                     model.addAttribute("errorMessage", "User not found for email: " + collaboratorEmail);
                     return "create-paper";
                 }
-                
-                
             }
-            System.out.println("--------------!!!!!!!!!!!!!!!!!Redirecting to /papers/view");
-            return "redirect:/papers/view"; 
-            
+            return "redirect:/papers/view";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Error while creating the paper: " + e.getMessage());
-            System.out.println("---------------!!!!!!!!!!!!!!!Redirecting to /papers/create-paper");
             return "create-paper";
         }
     }
