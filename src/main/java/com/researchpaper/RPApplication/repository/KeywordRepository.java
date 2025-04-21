@@ -12,4 +12,6 @@ public interface KeywordRepository extends JpaRepository<Keyword, Long> {
     List<Keyword> findByPaper(ResearchPaper paper);
     void deleteAllByPaperId(Long paperId);
     List<Keyword> findByPaperId(Long paperId);
+    void deleteByPaperId(Long paperId);
+
 }

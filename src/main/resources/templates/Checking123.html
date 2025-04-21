@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Paper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .author {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .keyword {
+            display: inline-block;
+            background-color: #eee;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 3px;
+        }
+        .edit-mode {
+            display: none;
+        }
+        .view-mode {
+            display: block;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="paper-details">
+        <h1 th:text="${paper.title}">Paper Title</h1>
+        
+        <!-- Authors Section -->
+        <div>
+            <h2>Authors</h2>
+            <div th:each="author : ${authors}" class="author">
+                <p><strong>Name:</strong> <span th:text="${author.name}">Author Name</span></p>
+                <p><strong>Department:</strong> <span th:text="${author.department}">Department</span></p>
+                <p><strong>Organization:</strong> <span th:text="${author.organization}">Organization</span></p>
+                <p><strong>City/Country:</strong> <span th:text="${author.city}">City/Country</span></p>
+                <p><strong>Contact:</strong> <span th:text="${author.contact}">Contact</span></p>
+            </div>
+        </div>
+
+        <!-- Abstract Section -->
+        <div class="section">
+            <h2>Abstract</h2>
+            <p th:text="${paperAbstract != null ? paperAbstract.content : 'No abstract available'}">Abstract text goes here</p>
+        </div>
+
+        <!-- Keywords Section -->
+        <div class="section">
+            <h2>Keywords</h2>
+            <div>
+                <span th:each="keyword : ${keywords}" class="keyword" th:text="${keyword.word}">keyword</span>
+            </div>
+        </div>
+
+        <!-- Paper Sections -->
+        <h2>Sections</h2>
+        <div th:each="section : ${sections}" class="section">
+            <h3 th:text="${section.title}">Section Title</h3>
+            <div th:utext="${section.content}">Section content goes here</div>
+        </div>
+
+        <!-- Edit Button -->
+        <div>
+            <button id="edit-paper">Edit Paper</button>
+            <button id="export-pdf">Export to PDF</button>
+        </div>
+    </div>
+
+    <!-- Edit Mode Form (Hidden by Default) -->
+    <div id="edit-paper-form" class="edit-mode">
+        <h2>Edit Paper</h2>
+
+        <!-- Title Section -->
+        <div>
+            <label for="title">Title: </label>
+            <input type="text" id="title" th:value="${paper.title}" required>
+        </div>
+
+        <!-- Authors Section -->
+        <div id="authors">
+            <h3>Authors</h3>
+            <div id="authors-container">
+                <div th:each="author, authorStat : ${authors}" class="author-edit">
+                    <input type="text" class="author-name" th:value="${author.name}" placeholder="Author Name" required>
+                    <input type="text" class="author-department" th:value="${author.department}" placeholder="Department" required>
+                    <input type="text" class="author-organization" th:value="${author.organization}" placeholder="Organization" required>
+                    <input type="text" class="author-city" th:value="${author.city}" placeholder="City/Country" required>
+                    <input type="text" class="author-contact" th:value="${author.contact}" placeholder="Contact" required>
+                    <input type="hidden" class="author-id" th:value="${author.id}">
+                </div>
+            </div>
+            <button type="button" id="add-author">Add Author</button>
+        </div>
+
+        <!-- Abstract Section -->
+        <div>
+            <label for="abstract">Abstract: </label>
+            <textarea id="abstract" rows="4" required th:text="${paperAbstract != null ? paperAbstract.content : ''}"></textarea>
+        </div>
+
+        <!-- Keywords Section -->
+        <div>
+            <label for="keywords">Keywords: </label>
+            <input type="text" id="keywords" placeholder="Enter keywords, separated by commas"
+                   th:value="${#strings.listJoin(keywords.![word], ', ')}">
+        </div>
+        <body data-paper-id="[[${paper.id}]]"></body>
+        <!-- Sections -->
+        <div id="sections">
+            <h3>Sections</h3>
+            <div id="section-list">
+                <div th:each="section, sectionStat : ${sections}" class="section-edit">
+                    <label>Section Title:</label>
+                    <input type="text" class="section-title" th:value="${section.title}" placeholder="Enter section title">
+                    <label>Section Content:</label>
+                    <textarea class="section-content" rows="6" placeholder="Enter section content" th:text="${section.content}"></textarea>
+                    <input type="hidden" class="section-id" th:value="${section.id}">
+                </div>
+            </div>
+            <button id="add-section" type="button">Add Section</button>
+        </div>
+
+        <!-- Save Button -->
+        <div>
+            <button type="button" id="save-paper">Save Changes</button>
+            <button type="button" id="cancel-edit">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between view and edit modes
+        document.getElementById('edit-paper').addEventListener('click', function() {
+            document.getElementById('paper-details').style.display = 'none';
+            document.getElementById('edit-paper-form').style.display = 'block';
+        });
+
+        document.getElementById('cancel-edit').addEventListener('click', function() {
+            document.getElementById('paper-details').style.display = 'block';
+            document.getElementById('edit-paper-form').style.display = 'none';
+        });
+
+        // Add more author fields in edit mode
+        document.getElementById('add-author').addEventListener('click', function() {
+            const authorsContainer = document.getElementById('authors-container');
+            const newAuthorDiv = document.createElement('div');
+            newAuthorDiv.classList.add('author-edit');
+            newAuthorDiv.innerHTML = `
+                <input type="text" class="author-name" placeholder="Author Name" required>
+                <input type="text" class="author-department" placeholder="Department" required>
+                <input type="text" class="author-organization" placeholder="Organization" required>
+                <input type="text" class="author-city" placeholder="City/Country" required>
+                <input type="text" class="author-contact" placeholder="Contact" required>
+                <input type="hidden" class="author-id" value="0">
+            `;
+            authorsContainer.appendChild(newAuthorDiv);
+        });
+
+        // Add more section fields in edit mode
+        document.getElementById('add-section').addEventListener('click', function() {
+            const sectionList = document.getElementById('section-list');
+            const newSection = document.createElement('div');
+            newSection.classList.add('section-edit');
+            newSection.innerHTML = `
+                <label>Section Title:</label>
+                <input type="text" class="section-title" placeholder="Enter section title">
+                <label>Section Content:</label>
+                <textarea class="section-content" rows="6" placeholder="Enter section content"></textarea>
+                <input type="hidden" class="section-id" value="0">
+            `;
+            sectionList.appendChild(newSection);
+        });
+
+        // Save paper changes
+        document.getElementById('save-paper').addEventListener('click', function() {
+            const paperId = document.body.getAttribute('data-paper-id'); // Get paper ID from Thymeleaf
+            const title = document.getElementById('title').value.trim();
+            const abstract = document.getElementById('abstract').value.trim();
+            const keywordsInput = document.getElementById('keywords').value.trim();
+            const keywords = keywordsInput ? keywordsInput.split(',').map(k => k.trim()).filter(k => k) : [];
+
+            // Collect author details
+            const authors = [];
+            const authorElements = document.querySelectorAll('.author-edit');
+            authorElements.forEach((author, index) => {
+                const name = author.querySelector('.author-name').value.trim();
+                const department = author.querySelector('.author-department').value.trim();
+                const organization = author.querySelector('.author-organization').value.trim();
+                const city = author.querySelector('.author-city').value.trim();
+                const contact = author.querySelector('.author-contact').value.trim();
+                const id = author.querySelector('.author-id').value;
+                
+                if (name && department && organization && city && contact) {
+                    authors.push({ 
+                        id: id !== "0" ? parseInt(id) : null,
+                        name, 
+                        department, 
+                        organization, 
+                        city, 
+                        contact,
+                        position: index + 1 
+                    });
+                }
+            });
+
+            // Collect sections
+            const sections = [];
+            const sectionElements = document.querySelectorAll('.section-edit');
+            sectionElements.forEach((section, index) => {
+                const sectionTitle = section.querySelector('.section-title').value.trim();
+                const content = section.querySelector('.section-content').value.trim();
+                const id = section.querySelector('.section-id').value;
+                
+                if (sectionTitle && content) {
+                    sections.push({
+                        id: id !== "0" ? parseInt(id) : null,
+                        title: sectionTitle,
+                        content: content,
+                        position: index + 1
+                    });
+                }
+            });
+
+            // Prepare data
+            const paperData = {
+                id: paperId,
+                title: title,
+                abstractText: abstract,
+                keywords: keywords,
+                authors: authors,
+                sections: sections
+            };
+
+            // Send data to backend
+            fetch('/update-paper', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paperData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Paper updated successfully!');
+                window.location.reload(); // Reload to show updated data
+            })
+            .catch(error => {
+                alert('Error updating paper: ' + error.message);
+                console.error('Error:', error);
+            });
+        });
+
+        // Export to PDF functionality
+        document.getElementById('export-pdf').addEventListener('click', function() {
+            const paperId = document.body.getAttribute('data-paper-id');
+            window.location.href = `/export-pdf/${paperId}`;
+        });
+    </script>
+</body>
+</html>

@@ -1,42 +1,95 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>All Research Papers</title>
-    <link rel="stylesheet" href="/css/styles.css"> <!-- Optional CSS -->
+    <title>My Research Papers</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            padding: 0;
+            list-style: none;
+        }
+        li {
+            background-color: #ffffff;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
-    <div th:replace="fragments/header :: header"></div>
 
+    <h1>Your Research Papers</h1>
+    <button onclick="fetchPapers()">Load My Papers</button>
+    <ul id="papersList"></ul>
 
-    <section>
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Collaborators</th>
-                    <th>Created At</th>
-                    <th>Updated At</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="paper : ${papers}">
-                    <td th:text="${paper.title}">Paper Title</td>
-                    <td th:text="${paper.user.name}">Author Name</td>
-                    <td>
-                        <ul>
-                            <li th:each="collab : ${paper.collaborators}"
-                                th:text="${collab.user.name + ' (' + collab.role + ')'}">
-                                Collaborator Name (Role)
-                            </li>
-                        </ul>
-                    </td>
-                    <td th:text="${#dates.format(paper.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2024</td>
-                    <td th:text="${#dates.format(paper.updatedAt, 'dd MMM yyyy HH:mm')}">02 Jan 2024</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
+    <script>
+        function fetchPapers() {
+    fetch('/view-papers', {
+        method: 'POST',
+        credentials: 'include', // important for session cookies
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Unauthorized or server error");
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data);
+        const list = document.getElementById('papersList');
+        list.innerHTML = '';
+        if (data.length === 0) {
+            list.innerHTML = '<li>No papers found.</li>';
+        } else {
+            data.forEach(paper => {
+                const li = document.createElement('li');
+                li.textContent = paper.title;
+                li.style.cursor = 'pointer';
+                li.onclick = () => {
+                    // First, set the paper ID in the session
+                    fetch('/set-paper-id', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ paperId: paper.id })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log(paper.id);
+                            // Once the paper ID is set, redirect to the view page
+                            window.location.href = '/papers/view';
+                        } else {
+                            alert('Failed to set paper ID in session');
+                        }
+                    })
+                    .catch(err => {
+                        alert('Failed to set paper ID: ' + err.message);
+                    });
+                };
+                list.appendChild(li);
+            });
+        }
+    })
+    .catch(err => {
+        alert('Failed to load papers: ' + err.message);
+    });
+}
+
+    </script>
+
 </body>
 </html>

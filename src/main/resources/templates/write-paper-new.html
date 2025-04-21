@@ -4,64 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Paper</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .container {
-            display: flex;
-            gap: 20px;
-        }
-        .form-container {
-            flex: 1;
-        }
-        .preview-container {
-            flex: 1;
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 10px 0;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .author, .section {
-            border: 1px solid #eee;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-        h2, h3 {
-            color: #333;
-        }
-        .preview-section {
-            margin-bottom: 20px;
-        }
-        .preview-section h3 {
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="/write-paper-styles.css">
 </head>
 <body>
     <h1>Paper Submission System</h1>
@@ -71,6 +14,9 @@
         <div class="form-container">
             <div id="paper-details">
                 <h2>Submit Paper</h2>
+
+                <!-- Paper ID (hidden) -->
+                <input type="hidden" id="paperId">
 
                 <!-- Title Section -->
                 <div>
@@ -156,6 +102,123 @@
     </div>
 
     <script>
+        // Fetch the paper data when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch the paper data from the server
+            fetchPaperData();
+            
+            // Add input event listeners
+            document.getElementById('title').addEventListener('input', updatePreview);
+            document.getElementById('abstract').addEventListener('input', updatePreview);
+            document.getElementById('keywords').addEventListener('input', updatePreview);
+            
+            // Add listeners for dynamically added elements
+            document.getElementById('paper-details').addEventListener('input', function(e) {
+                if (e.target.classList.contains('author-name') || 
+                    e.target.classList.contains('author-department') || 
+                    e.target.classList.contains('author-organization') || 
+                    e.target.classList.contains('author-city') || 
+                    e.target.classList.contains('author-contact') || 
+                    e.target.classList.contains('section-title') || 
+                    e.target.classList.contains('section-content')) {
+                    updatePreview();
+                }
+            });
+        });
+
+        // Function to fetch paper data from the server
+        function fetchPaperData() {
+            fetch('/paperdata', {
+                method: 'GET',
+                credentials: 'include', // To include session cookies
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch paper data');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    console.error('Server error:', data.error);
+                    return;
+                }
+                
+                // Store paper ID
+                document.getElementById('paperId').value = data.paper.id;
+                
+                // Fill in the paper title
+                document.getElementById('title').value = data.paper.title || '';
+                
+                // Fill in the abstract
+                if (data.paperAbstract) {
+                    document.getElementById('abstract').value = data.paperAbstract.text || '';
+                }
+                
+                // Fill in the keywords
+                if (data.keywords && data.keywords.length > 0) {
+                    const keywordsList = data.keywords.map(k => k.text).join(', ');
+                    document.getElementById('keywords').value = keywordsList;
+                }
+                
+                // Fill in authors
+                if (data.authors && data.authors.length > 0) {
+                    // Remove the default empty author field
+                    const authorsContainer = document.getElementById('authors');
+                    const addAuthorBtn = document.getElementById('add-author');
+                    
+                    // Clear existing author fields
+                    const existingAuthors = document.querySelectorAll('.author');
+                    existingAuthors.forEach(author => author.remove());
+                    
+                    // Add authors from data
+                    data.authors.forEach(author => {
+                        const authorDiv = document.createElement('div');
+                        authorDiv.classList.add('author');
+                        authorDiv.innerHTML = `
+                            <input type="text" class="author-name" placeholder="Author Name" required value="${author.name || ''}">
+                            <input type="text" class="author-department" placeholder="Department" required value="${author.department || ''}">
+                            <input type="text" class="author-organization" placeholder="Organization" required value="${author.organization || ''}">
+                            <input type="text" class="author-city" placeholder="City/Country" required value="${author.city || ''}">
+                            <input type="text" class="author-contact" placeholder="Contact" required value="${author.contact || ''}">
+                        `;
+                        authorsContainer.insertBefore(authorDiv, addAuthorBtn);
+                    });
+                }
+                
+                // Fill in sections
+                if (data.sections && data.sections.length > 0) {
+                    // Clear existing section fields
+                    const sectionList = document.getElementById('section-list');
+                    sectionList.innerHTML = '';
+                    
+                    // Add sections from data
+                    data.sections.forEach(section => {
+                        const sectionDiv = document.createElement('div');
+                        sectionDiv.classList.add('section');
+                        sectionDiv.innerHTML = `
+                            <label for="section-title">Section Title:</label>
+                            <input type="text" class="section-title" placeholder="Enter section title" value="${section.title || ''}">
+                            <label for="section-content">Section Content:</label>
+                            <textarea class="section-content" rows="4" placeholder="Enter section content">${section.content || ''}</textarea>
+                        `;
+                        sectionList.appendChild(sectionDiv);
+                    });
+                }
+                
+                // Update the preview
+                updatePreview();
+            })
+            .catch(error => {
+                console.error('Error fetching paper data:', error);
+                // If we can't fetch existing data, initialize with empty preview
+                updatePreview();
+            });
+        }
+
         // Function to update the preview
         function updatePreview() {
             // Update title preview
@@ -218,30 +281,6 @@
             document.getElementById('preview-sections').innerHTML = sectionsHtml || '-';
         }
 
-        // Add event listeners to all input fields
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize preview
-            updatePreview();
-            
-            // Add input event listeners
-            document.getElementById('title').addEventListener('input', updatePreview);
-            document.getElementById('abstract').addEventListener('input', updatePreview);
-            document.getElementById('keywords').addEventListener('input', updatePreview);
-            
-            // Add listeners for dynamically added elements
-            document.getElementById('paper-details').addEventListener('input', function(e) {
-                if (e.target.classList.contains('author-name') || 
-                    e.target.classList.contains('author-department') || 
-                    e.target.classList.contains('author-organization') || 
-                    e.target.classList.contains('author-city') || 
-                    e.target.classList.contains('author-contact') || 
-                    e.target.classList.contains('section-title') || 
-                    e.target.classList.contains('section-content')) {
-                    updatePreview();
-                }
-            });
-        });
-
         // Add section functionality
         document.getElementById('add-section').addEventListener('click', function() {
             const sectionList = document.getElementById('section-list');
@@ -259,6 +298,7 @@
 
         // Save functionality
         document.getElementById('save-paper').addEventListener('click', function() {
+            const paperId = document.getElementById('paperId').value.trim();
             const title = document.getElementById('title').value.trim();
             const abstract = document.getElementById('abstract').value.trim();
             const keywords = document.getElementById('keywords').value.trim().split(',').map(k => k.trim()).filter(k => k);
@@ -272,7 +312,7 @@
             // Collect author details
             const authors = [];
             const authorElements = document.querySelectorAll('.author');
-            authorElements.forEach((author) => {
+            authorElements.forEach((author, index) => {
                 const name = author.querySelector('.author-name').value.trim();
                 const department = author.querySelector('.author-department').value.trim();
                 const organization = author.querySelector('.author-organization').value.trim();
@@ -280,7 +320,15 @@
                 const contact = author.querySelector('.author-contact').value.trim();
                 
                 if (name && department && organization && city && contact) {
-                    authors.push({ name, department, organization, city, contact });
+                    authors.push({ 
+                        name, 
+                        department, 
+                        organization, 
+                        city, 
+                        contact,
+                        position: index + 1,
+                        paperId: paperId || null
+                    });
                 }
             });
 
@@ -296,36 +344,47 @@
             const sectionContents = document.querySelectorAll('.section-content');
             sectionTitles.forEach((titleEl, index) => {
                 const section = {
-                    sectionTitle: titleEl.value.trim(),
+                    title: titleEl.value.trim(),
                     content: sectionContents[index].value.trim(),
-                    position: index + 1
+                    position: index + 1,
+                    paperId: paperId || null
                 };
-                if (section.sectionTitle && section.content) {
+                if (section.title && section.content) {
                     sections.push(section);
                 }
             });
 
             // Prepare the paper data
             const paperDTO = {
+                id: paperId || null,
                 title,
                 abstractText: abstract,
-                keywords,
+                keywords: keywords.map(text => ({ text, paperId: paperId || null })),
                 authors,
                 sections
             };
 
             // Send data to backend
-            fetch('/save-paper', {
+            fetch('/update-paper', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(paperDTO)
+                body: JSON.stringify(paperDTO),
+                credentials: 'include' // To include session cookies
             })
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
                 console.log(data);
+                
+                // Update paperId if it's a new paper
+                if (data.paperId && !paperId) {
+                    document.getElementById('paperId').value = data.paperId;
+                }
+                
+                // Refresh the preview with the latest data from server
+                fetchPaperData();
             })
             .catch(error => {
                 alert('Error submitting paper');

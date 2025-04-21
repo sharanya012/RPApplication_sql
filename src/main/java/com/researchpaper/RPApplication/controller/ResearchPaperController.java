@@ -13,12 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
-import com.researchpaper.RPApplication.model.Author;
 import com.researchpaper.RPApplication.model.Collaborator;
-import com.researchpaper.RPApplication.model.Keyword;
-import com.researchpaper.RPApplication.model.PaperAbstract;
 import com.researchpaper.RPApplication.model.ResearchPaper;
-import com.researchpaper.RPApplication.model.Section;
 import com.researchpaper.RPApplication.model.User;
 import com.researchpaper.RPApplication.repository.AbstractRepository;
 import com.researchpaper.RPApplication.repository.AuthorRepository;
@@ -69,33 +65,8 @@ public class ResearchPaperController {
         model.addAttribute("templates", templateRepository.findAll());
         return "create-paper";
     }
-
-    @GetMapping("/view")
-    public String viewPaper(@SessionAttribute("paperId") Long paperId, Model model) {
-        try {
-            // Fetch the complete paper with all related data
-            ResearchPaper paper = researchPaperRepository.findById(paperId)
-                    .orElseThrow(() -> new RuntimeException("Paper not found"));
-            
-            // Get all related data
-            PaperAbstract paperAbstract = abstractRepository.findByPaperId(paperId);
-            List<Author> authors = authorRepository.findByPaperIdOrderByPositionAsc(paperId);
-            List<Keyword> keywords = keywordRepository.findByPaperId(paperId);
-            List<Section> sections = sectionRepository.findByPaperIdOrderByPositionAsc(paperId);
-            
-            // Add all data to the model
-            model.addAttribute("paper", paper);
-            model.addAttribute("paperAbstract", paperAbstract);
-            model.addAttribute("authors", authors);
-            model.addAttribute("keywords", keywords);
-            model.addAttribute("sections", sections);
-            
-            return "write-paper-new";
-        } catch (Exception e) {
-            model.addAttribute("error", "Error loading paper: " + e.getMessage());
-            return "error";
-        }
-    }
+    
+    
 
     @PostMapping("/create")
     public String createResearchPaper(@RequestParam("title") String title,

@@ -11,4 +11,5 @@ public interface SectionRepository extends JpaRepository<Section, Long> {
     void deleteAllByPaperId(Long paperId);
     List<Section> findByPaperIdOrderByPosition(Long paperId);
     List<Section> findByPaperIdOrderByPositionAsc(Long paperId);
+
 }

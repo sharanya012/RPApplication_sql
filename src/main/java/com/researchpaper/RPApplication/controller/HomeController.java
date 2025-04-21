@@ -1,5 +1,6 @@
 package com.researchpaper.RPApplication.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,9 +14,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
+import com.researchpaper.RPApplication.model.Author;
+import com.researchpaper.RPApplication.model.Keyword;
+import com.researchpaper.RPApplication.model.PaperAbstract;
+import com.researchpaper.RPApplication.model.ResearchPaper;
+import com.researchpaper.RPApplication.model.Section;
 import com.researchpaper.RPApplication.model.User;
+import com.researchpaper.RPApplication.repository.AbstractRepository;
+import com.researchpaper.RPApplication.repository.AuthorRepository;
+import com.researchpaper.RPApplication.repository.KeywordRepository;
+import com.researchpaper.RPApplication.repository.ResearchPaperRepository;
+import com.researchpaper.RPApplication.repository.SectionRepository;
 import com.researchpaper.RPApplication.repository.UserRepository;
 import com.researchpaper.RPApplication.service.ResearchPaperService;
 import com.researchpaper.RPApplication.service.UserService;
@@ -30,19 +42,41 @@ public class HomeController {
     private final UserRepository userRepository;
     private final ResearchPaperService researchPaperService;
 
+    private final ResearchPaperRepository researchPaperRepository;
+    private final AbstractRepository abstractRepository;
+    private final AuthorRepository authorRepository;
+    private final KeywordRepository keywordRepository;
+    private final SectionRepository sectionRepository;
+
     @Autowired
     public HomeController(UserService userService, 
-                        UserRepository userRepository,
-                        ResearchPaperService researchPaperService) {
+                          UserRepository userRepository,
+                          ResearchPaperService researchPaperService,
+                          ResearchPaperRepository researchPaperRepository,
+                          AbstractRepository abstractRepository,
+                          AuthorRepository authorRepository,
+                          KeywordRepository keywordRepository,
+                          SectionRepository sectionRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.researchPaperService = researchPaperService;
+        this.researchPaperRepository = researchPaperRepository;
+        this.abstractRepository = abstractRepository;
+        this.authorRepository = authorRepository;
+        this.keywordRepository = keywordRepository;
+        this.sectionRepository = sectionRepository;
     }
+
 
     // Mapping for the Index page
     @GetMapping("/")
     public String index() {
         return "index"; // returns index.html (in templates folder)
+    }
+
+    @GetMapping("/papersforview")
+    public String papersforview() {
+        return "view-papers"; // returns index.html (in templates folder)
     }
 
     // Mapping for the Login page
@@ -88,7 +122,10 @@ public class HomeController {
         session.invalidate();
         return "redirect:/userlogin";
     }
-    @PostMapping("/save-paper")
+
+    
+
+    @PostMapping("/save-paper2")
 public ResponseEntity<Map<String, String>> savePaper(
         @RequestBody Map<String, Object> paper, 
         @SessionAttribute(value = "userId", required = false) String username) {
@@ -166,5 +203,179 @@ public ResponseEntity<Map<String, String>> savePaper(
                 .body(Map.of("error", "Failed to save paper: " + e.getMessage()));
     }
 }
+    @GetMapping("/paperdata")
+@ResponseBody
+public Map<String, Object> getPaperData(@SessionAttribute("paperId") Long paperId) {
+    try {
+        // Fetch the complete paper with all related data
+        ResearchPaper paper = researchPaperRepository.findById(paperId)
+                .orElseThrow(() -> new RuntimeException("Paper not found"));
+        
+        // Get all related data
+        PaperAbstract paperAbstract = abstractRepository.findByPaperId(paperId);
+        List<Author> authors = authorRepository.findByPaperIdOrderByPositionAsc(paperId);
+        List<Keyword> keywords = keywordRepository.findByPaperId(paperId);
+        List<Section> sections = sectionRepository.findByPaperIdOrderByPositionAsc(paperId);
+        
+        // Create a response map
+        String title = researchPaperRepository.findTitleById(paperId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("paper", paper);
+        response.put("paperAbstract", paperAbstract);
+        response.put("authors", authors);
+        response.put("keywords", keywords);
+        response.put("sections", sections);
+        response.put("title",title);
+        
+        return response;
+    } catch (Exception e) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Error loading paper: " + e.getMessage());
+        return errorResponse;
+    }
+}
+
+@PostMapping("/update-paper")
+public ResponseEntity<Map<String, String>> updatePaper(
+        @RequestBody Map<String, Object> paper, 
+        @SessionAttribute(value = "userId", required = false) String username,
+        @SessionAttribute(value = "paperId", required = false) Long paperId) {
     
+    // Extract fields from paper JSON data
+    String title = (String) paper.get("title");
+    String abstractText = (String) paper.get("abstractText");
+    List<String> keywords = (List<String>) paper.get("keywords");
+    
+    // Safe extraction and casting of authors field
+    List<Map<String, Object>> authors = null;
+    if (paper.get("authors") instanceof List) {
+        authors = (List<Map<String, Object>>) paper.get("authors");
+    }
+    List<Map<String, Object>> sections = (List<Map<String, Object>>) paper.get("sections");
+
+    // Print details to console
+    System.out.println("Updating Paper Details:");
+    System.out.println("Paper ID: " + paperId);
+    System.out.println("Title: " + title);
+    System.out.println("Abstract: " + abstractText);
+    System.out.println("Keywords: " + keywords);
+    System.out.println("Authors: ");
+    
+    if (authors != null) {
+        for (Map<String, Object> author : authors) {
+            System.out.println("Author Name: " + author.get("name"));
+            System.out.println("Department: " + author.get("department"));
+            System.out.println("Organization: " + author.get("organization"));
+            System.out.println("City/Country: " + author.get("city"));
+            System.out.println("Contact: " + author.get("contact"));
+            System.out.println("----");
+        }
+    } else {
+        System.out.println("No authors information provided.");
+    }
+    
+    System.out.println("Sections:");
+    if (sections != null) {
+        for (Map<String, Object> section : sections) {
+            System.out.println("Section Title: " + section.get("sectionTitle"));
+            System.out.println("Section Content: " + section.get("content"));
+            System.out.println("Position: " + section.get("position"));
+            System.out.println("----");
+        }
+    }
+    
+    System.out.println("Username from session: " + username);
+    
+    if (username == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "User not authenticated. Please login first."));
+    }
+    
+    if (paperId == null) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "Paper ID not found in session."));
+    }
+    
+    try {
+        // Find user by username
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isEmpty()) {
+            System.out.println("User not found with username: " + username);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User not found"));
+        }
+        
+        User user = userOptional.get();
+        System.out.println("Updating paper for user: " + user.getUsername() + " (ID: " + user.getId() + ")");
+        
+        // Update the paper using the service
+        researchPaperService.updatePaper(paper, paperId, user.getId());
+        
+        System.out.println("Paper updated successfully!");
+        return ResponseEntity.ok(Map.of("message", "Paper updated successfully!"));
+    } catch (Exception e) {
+        System.out.println("Error updating paper: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to update paper: " + e.getMessage()));
+    }
+}
+
+@PostMapping("/view-papers")
+public ResponseEntity<List<Map<String, Object>>> viewPapers(
+        @SessionAttribute(value = "userId", required = false) String username) {
+
+    if (username == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+    }
+
+    List<Map<String, Object>> paperSummaries = researchPaperService.getPaperSummariesByUsername(username);
+    return ResponseEntity.ok(paperSummaries);
+}
+
+
+    @PostMapping("/set-paper-id")
+public ResponseEntity<Void> setPaperIdInSession(@RequestBody Map<String, Long> requestBody,
+                                                HttpSession session) {
+    Long paperId = requestBody.get("paperId");
+    if (paperId != null) {
+        session.setAttribute("paperId", paperId);
+        return ResponseEntity.ok().build();
+    } else {
+        return ResponseEntity.badRequest().build();
+    }
+}
+
+@GetMapping("papers/view")
+    public String viewPaper(@SessionAttribute("paperId") Long paperId, Model model) {
+        try {
+            System.out.println("\n===== START DEBUG OUTPUT =====");
+            System.out.println("Paper ID from session: " + paperId);
+            // Fetch the complete paper with all related data
+            ResearchPaper paper = researchPaperRepository.findById(paperId)
+                    .orElseThrow(() -> new RuntimeException("Paper not found"));
+            System.out.println("here is the paper, im inside view!!!!!!!!");
+            // Get all related data
+            String title = researchPaperRepository.findTitleById(paperId);
+        System.out.println("Paper Title (from dedicated query): " + title);
+            PaperAbstract paperAbstract = abstractRepository.findByPaperId(paperId);
+            List<Author> authors = authorRepository.findByPaperIdOrderByPositionAsc(paperId);
+            List<Keyword> keywords = keywordRepository.findByPaperId(paperId);
+            List<Section> sections = sectionRepository.findByPaperIdOrderByPositionAsc(paperId);
+            //System.out.println("Full Paper Object: " + paper.toString());
+            // Add all data to the model
+            model.addAttribute("paper", paper);
+            model.addAttribute("paperAbstract", paperAbstract);
+            model.addAttribute("authors", authors);
+            model.addAttribute("keywords", keywords);
+            model.addAttribute("sections", sections);
+            model.addAttribute("title", title); 
+
+            return "write-paper-new";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading paper: " + e.getMessage());
+            return "error";
+        }
+    }
+
 }
