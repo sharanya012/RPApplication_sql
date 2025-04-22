@@ -1,9 +1,11 @@
 package com.researchpaper.RPApplication.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -125,7 +127,7 @@ public class HomeController {
 
     
 
-    @PostMapping("/save-paper2")
+    @PostMapping("/save-paper")
 public ResponseEntity<Map<String, String>> savePaper(
         @RequestBody Map<String, Object> paper, 
         @SessionAttribute(value = "userId", required = false) String username) {
@@ -203,35 +205,76 @@ public ResponseEntity<Map<String, String>> savePaper(
                 .body(Map.of("error", "Failed to save paper: " + e.getMessage()));
     }
 }
-    @GetMapping("/paperdata")
+
+@GetMapping("/paperdata")
 @ResponseBody
-public Map<String, Object> getPaperData(@SessionAttribute("paperId") Long paperId) {
+public Map<String, Object> getPaperData(@SessionAttribute(value = "paperId", required = false) Long paperId) {
+    Map<String, Object> response = new HashMap<>();
+
+    if (paperId == null) {
+        response.put("error", "No paperId found in session.");
+        return response;
+    }
+
     try {
-        // Fetch the complete paper with all related data
         ResearchPaper paper = researchPaperRepository.findById(paperId)
                 .orElseThrow(() -> new RuntimeException("Paper not found"));
-        
-        // Get all related data
+
         PaperAbstract paperAbstract = abstractRepository.findByPaperId(paperId);
         List<Author> authors = authorRepository.findByPaperIdOrderByPositionAsc(paperId);
         List<Keyword> keywords = keywordRepository.findByPaperId(paperId);
         List<Section> sections = sectionRepository.findByPaperIdOrderByPositionAsc(paperId);
-        
-        // Create a response map
-        String title = researchPaperRepository.findTitleById(paperId);
-        Map<String, Object> response = new HashMap<>();
-        response.put("paper", paper);
-        response.put("paperAbstract", paperAbstract);
-        response.put("authors", authors);
-        response.put("keywords", keywords);
-        response.put("sections", sections);
-        response.put("title",title);
-        
+
+        // ✅ Minimal paper info
+        Map<String, Object> paperData = new HashMap<>();
+        paperData.put("id", paper.getId());
+        paperData.put("title", paper.getTitle());
+
+        // ✅ Abstract
+        Map<String, Object> abstractData = new HashMap<>();
+        abstractData.put("text", paperAbstract != null ? paperAbstract.getContent() : "");
+
+        // ✅ Authors
+        List<Map<String, Object>> authorList = new ArrayList<>();
+        for (Author author : authors) {
+            Map<String, Object> authorMap = new HashMap<>();
+            authorMap.put("name", author.getFullName());
+            authorMap.put("department", author.getDepartment());
+            authorMap.put("organization", author.getOrganization());
+            authorMap.put("city", author.getCityCountry());
+            authorMap.put("contact", author.getContact());
+            authorMap.put("position", author.getPosition());
+            authorList.add(authorMap);
+        }
+
+        // ✅ Keywords
+        List<String> keywordList = keywords.stream()
+                .map(Keyword::getKeyword)
+                .collect(Collectors.toList());
+
+        // ✅ Sections
+        List<Map<String, Object>> sectionList = new ArrayList<>();
+        for (Section section : sections) {
+            Map<String, Object> sectionMap = new HashMap<>();
+            sectionMap.put("sectionTitle", section.getSectionTitle());
+            sectionMap.put("content", section.getContent());
+            sectionMap.put("position", section.getPosition());
+            sectionList.add(sectionMap);
+        }
+
+        // ✅ Build final response
+        response.put("paper", paperData);
+        response.put("paperAbstract", abstractData);
+        response.put("authors", authorList);
+        response.put("keywords", keywordList);
+        response.put("sections", sectionList);
+        response.put("title", paper.getTitle());
+
         return response;
+
     } catch (Exception e) {
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("error", "Error loading paper: " + e.getMessage());
-        return errorResponse;
+        response.put("error", "Error loading paper: " + e.getMessage());
+        return response;
     }
 }
 

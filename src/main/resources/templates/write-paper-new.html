@@ -160,7 +160,7 @@
                 
                 // Fill in the keywords
                 if (data.keywords && data.keywords.length > 0) {
-                    const keywordsList = data.keywords.map(k => k.text).join(', ');
+                    const keywordsList = data.keywords.join(', ');
                     document.getElementById('keywords').value = keywordsList;
                 }
                 
@@ -201,7 +201,7 @@
                         sectionDiv.classList.add('section');
                         sectionDiv.innerHTML = `
                             <label for="section-title">Section Title:</label>
-                            <input type="text" class="section-title" placeholder="Enter section title" value="${section.title || ''}">
+                            <input type="text" class="section-title" placeholder="Enter section title" value="${section.sectionTitle || ''}">
                             <label for="section-content">Section Content:</label>
                             <textarea class="section-content" rows="4" placeholder="Enter section content">${section.content || ''}</textarea>
                         `;
@@ -344,12 +344,12 @@
             const sectionContents = document.querySelectorAll('.section-content');
             sectionTitles.forEach((titleEl, index) => {
                 const section = {
-                    title: titleEl.value.trim(),
+                    sectionTitle: titleEl.value.trim(),
                     content: sectionContents[index].value.trim(),
                     position: index + 1,
                     paperId: paperId || null
                 };
-                if (section.title && section.content) {
+                if (section.sectionTitle && section.content) {
                     sections.push(section);
                 }
             });
@@ -359,12 +359,13 @@
                 id: paperId || null,
                 title,
                 abstractText: abstract,
-                keywords: keywords.map(text => ({ text, paperId: paperId || null })),
+                keywords,
                 authors,
                 sections
             };
 
             // Send data to backend
+            console.log("Paper data to be sent:", paperDTO);
             fetch('/update-paper', {
                 method: 'POST',
                 headers: {

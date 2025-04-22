@@ -319,12 +319,10 @@ private void updateAbstract(Map<String, Object> paperData, ResearchPaper paper) 
 private void updateAuthors(Map<String, Object> paperData, ResearchPaper paper) {
     if (paperData.containsKey("authors")) {
         List<Map<String, Object>> authors = (List<Map<String, Object>>) paperData.get("authors");
-        
-        // Delete existing authors
-        authorRepository.deleteAllByPaperId(paper.getId());
-        
-        // Add new authors
-        if (authors != null) {
+
+        if (authors != null && !authors.isEmpty()) {
+            authorRepository.deleteAllByPaperId(paper.getId());
+
             for (int i = 0; i < authors.size(); i++) {
                 Map<String, Object> authorData = authors.get(i);
                 Author author = new Author();
@@ -335,9 +333,10 @@ private void updateAuthors(Map<String, Object> paperData, ResearchPaper paper) {
                 author.setOrganization((String) authorData.get("organization"));
                 author.setCityCountry((String) authorData.get("city"));
                 author.setContact((String) authorData.get("contact"));
-                
                 authorRepository.save(author);
             }
+        } else {
+            System.out.println("Empty author list submitted. Skipping deletion to preserve existing authors.");
         }
     }
 }
@@ -345,18 +344,18 @@ private void updateAuthors(Map<String, Object> paperData, ResearchPaper paper) {
 private void updateKeywords(Map<String, Object> paperData, ResearchPaper paper) {
     if (paperData.containsKey("keywords")) {
         List<String> keywords = (List<String>) paperData.get("keywords");
-        
-        // Delete existing keywords
-        keywordRepository.deleteAllByPaperId(paper.getId());
-        
-        // Add new keywords
-        if (keywords != null) {
+
+        if (keywords != null && !keywords.isEmpty()) {
+            keywordRepository.deleteAllByPaperId(paper.getId());
+
             for (String keyword : keywords) {
                 Keyword keywordEntity = new Keyword();
                 keywordEntity.setPaper(paper);
                 keywordEntity.setKeyword(keyword);
                 keywordRepository.save(keywordEntity);
             }
+        } else {
+            System.out.println("Empty keyword list submitted. Skipping deletion to preserve existing keywords.");
         }
     }
 }
@@ -364,21 +363,19 @@ private void updateKeywords(Map<String, Object> paperData, ResearchPaper paper) 
 private void updateSections(Map<String, Object> paperData, ResearchPaper paper) {
     if (paperData.containsKey("sections")) {
         List<Map<String, Object>> sections = (List<Map<String, Object>>) paperData.get("sections");
-        
-        // Delete existing sections
-        sectionRepository.deleteAllByPaperId(paper.getId());
-        
-        // Add new sections
-        if (sections != null) {
+
+        if (sections != null && !sections.isEmpty()) {
+            sectionRepository.deleteAllByPaperId(paper.getId());
             for (Map<String, Object> sectionData : sections) {
                 Section section = new Section();
                 section.setPaper(paper);
                 section.setSectionTitle((String) sectionData.get("sectionTitle"));
                 section.setContent((String) sectionData.get("content"));
                 section.setPosition(((Number) sectionData.get("position")).intValue());
-                
                 sectionRepository.save(section);
             }
+        } else {
+            System.out.println("Empty section list submitted. Skipping deletion to preserve existing content.");
         }
     }
 }
