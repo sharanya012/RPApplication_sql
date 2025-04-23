@@ -5,7 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Paper</title>
     <link rel="stylesheet" href="/write-paper-styles.css">
+
+    <style>
+        #preview-wrapper {
+          font-family: "Times New Roman", serif;
+          padding: 1in;
+          background: white;
+          color: black;
+        }
+        
+        .preview-section {
+          margin-bottom: 20px;
+        }
+        </style>
+        
 </head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <body>
     <h1>Paper Submission System</h1>
     
@@ -63,17 +78,33 @@
                     <button id="add-section">Add Section</button>
                 </div>
 
+                <div>
+                    <label for="format-select">Select Paper Format:</label>
+                    <select id="format-select">
+                      <option value="ieee-conf">IEEE Conference</option>
+                      <option value="ieee-journal">IEEE Journal</option>
+                      <option value="acm-conf">ACM Conference</option>
+                      <option value="springer">Springer</option>
+                    </select>
+                  </div>
+                  
+
                 <!-- Save Button -->
                 <div>
                     <button type="button" id="save-paper">Save Paper</button>
                 </div>
+
+                <div style="margin-top: 10px;">
+                    <button type="button" id="download-pdf">Download PDF</button>
+                  </div>
+                  
             </div>
         </div>
         
         <!-- Right side: Live preview -->
         <div class="preview-container">
             <h2>Paper Preview</h2>
-            
+            <div id="preview-wrapper">
             <div class="preview-section">
                 <h3>Title</h3>
                 <div id="preview-title">-</div>
@@ -99,13 +130,30 @@
                 <div id="preview-sections">-</div>
             </div>
         </div>
+
+        </div>
     </div>
 
     <script>
+
+        document.getElementById('format-select').addEventListener('change', function () {
+  const selectedFormat = this.value;
+
+  // Remove any existing format class from <body>
+  document.body.classList.remove('ieee-conf', 'ieee-journal', 'acm-conf', 'springer');
+
+  // Add the selected one
+  document.body.classList.add(selectedFormat);
+});
+
         // Fetch the paper data when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Fetch the paper data from the server
             fetchPaperData();
+
+            document.body.classList.add('ieee-conf');
+document.getElementById('format-select').value = 'ieee-conf';
+
             
             // Add input event listeners
             document.getElementById('title').addEventListener('input', updatePreview);
@@ -408,6 +456,37 @@
             authorSection.insertBefore(newAuthorDiv, document.getElementById('add-author'));
             updatePreview(); // Update preview after adding a new author
         });
+
+        document.getElementById('download-pdf').addEventListener('click', function () {
+    // Force update the preview before capturing
+    updatePreview();
+
+    // Get selected format
+    const selectedFormat = document.getElementById('format-select').value;
+
+    // Temporarily apply the format class to the preview wrapper
+    const previewWrapper = document.getElementById('preview-wrapper');
+    console.log(previewWrapper);
+
+    document.body.classList.add(selectedFormat);
+
+    // Export the preview section to PDF
+    const opt = {
+        margin:       0.5,
+        filename:     `paper-preview-${selectedFormat}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    setTimeout(() => {
+    html2pdf().set(opt).from(previewWrapper).save().then(() => {
+        document.body.classList.remove(selectedFormat);
+    });
+}, 300); // 300ms delay to allow DOM updates and styling to settle
+
+});
+
     </script>
 </body>
 </html>

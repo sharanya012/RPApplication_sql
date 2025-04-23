@@ -54,3 +54,43 @@ h2, h3 {
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
 }
+
+/* Base preview styles */
+.preview-container {
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+  }
+  
+  /* IEEE Conference */
+  .ieee-conf .preview-container {
+    font-family: "Times New Roman", serif;
+    font-size: 11pt;
+    line-height: 1.2;
+    margin: 1in;
+  }
+  
+  /* IEEE Journal */
+  .ieee-journal .preview-container {
+    font-family: "Times New Roman", serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    text-align: justify;
+  }
+  
+  /* ACM Conference */
+  .acm-conf .preview-container {
+    font-family: "Helvetica", sans-serif;
+    font-size: 9pt;
+    line-height: 1.3;
+    padding: 1in;
+    background-color: #fdfdfd;
+  }
+  
+  /* Springer */
+  .springer .preview-container {
+    font-family: "Palatino Linotype", serif;
+    font-size: 11pt;
+    line-height: 1.4;
+    text-align: justify;
+  }
+  
