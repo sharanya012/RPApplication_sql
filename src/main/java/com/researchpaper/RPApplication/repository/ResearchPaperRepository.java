@@ -14,4 +14,7 @@ public interface ResearchPaperRepository extends JpaRepository<ResearchPaper, Lo
     List<ResearchPaper> findByUser(User user);
     @Query("SELECT rp.title FROM ResearchPaper rp WHERE rp.id = :paperId")
     String findTitleById(@Param("paperId") Long paperId);
+    // New method to find papers by collaborator
+    @Query("SELECT c.paper FROM Collaborator c WHERE c.user = :user")
+    List<ResearchPaper> findByCollaborator(@Param("user") User user);
 }

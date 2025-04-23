@@ -389,9 +389,19 @@ public List<String> getPaperTitlesByUsername(String username) {
 
     User user = optionalUser.get();
 
-    List<ResearchPaper> papers = researchPaperRepository.findByUser(user);
-
-    return papers.stream()
+    // Get papers created by the user
+    List<ResearchPaper> ownedPapers = researchPaperRepository.findByUser(user);
+    
+    // Get papers where user is a collaborator
+    List<ResearchPaper> collaboratedPapers = researchPaperRepository.findByCollaborator(user);
+    
+    // Combine both lists
+    List<ResearchPaper> allPapers = new ArrayList<>();
+    allPapers.addAll(ownedPapers);
+    allPapers.addAll(collaboratedPapers);
+    
+    // Extract titles
+    return allPapers.stream()
             .map(ResearchPaper::getTitle)
             .collect(Collectors.toList());
 }
@@ -404,19 +414,31 @@ public List<Map<String, Object>> getPaperSummariesByUsername(String username) {
     }
 
     User user = optionalUser.get();
-    List<ResearchPaper> papers = researchPaperRepository.findByUser(user);
+    
+    // Get papers created by the user
+    List<ResearchPaper> ownedPapers = researchPaperRepository.findByUser(user);
+    
+    // Get papers where user is a collaborator
+    List<ResearchPaper> collaboratedPapers = researchPaperRepository.findByCollaborator(user);
+    
+    // Combine both lists
+    List<ResearchPaper> allPapers = new ArrayList<>();
+    allPapers.addAll(ownedPapers);
+    allPapers.addAll(collaboratedPapers);
 
     List<Map<String, Object>> summaries = new ArrayList<>();
-    for (ResearchPaper paper : papers) {
+    for (ResearchPaper paper : allPapers) {
         Map<String, Object> summary = new HashMap<>();
         summary.put("id", paper.getId());
         summary.put("title", paper.getTitle());
+        
+        // Optionally add a flag to indicate ownership status
+        summary.put("isOwner", paper.getUser().equals(user));
+        
         summaries.add(summary);
     }
 
     return summaries;
 }
-
-
 
 }
